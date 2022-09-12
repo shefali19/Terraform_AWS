@@ -60,10 +60,10 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
   )
 }
 
-data "archive_file" "zip_python_code"{
+data "archive_file" "zip_lambda_code"{
     type = "zip"
-    source_file = "${path.module}/python/index.py"
-    output_path = "${path.module}/python/index.zip"
+    source_file = "${path.module}/lambda/index.py"
+    output_path = "${path.module}/lambda/index.zip"
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
@@ -75,7 +75,7 @@ resource "aws_lambda_permission" "allow_bucket" {
 }
 
 resource "aws_lambda_function" "lambdafunc" {
-  filename      = "${path.module}/python/index.zip"
+  filename      = "${path.module}/lambda/index.zip"
   function_name = "fetchIntoDynamoDB"
   role          = aws_iam_role.lambda_iam_role.arn
   handler       = "index.lambda_handler"
@@ -83,9 +83,9 @@ resource "aws_lambda_function" "lambdafunc" {
   timeout       = "900"
   depends_on = [
     aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role,
-    data.archive_file.zip_python_code
+    data.archive_file.zip_lambda_code
   ]
-  source_code_hash = "${base64sha256("${path.module}/python/index.zip")}"
+  source_code_hash = "${base64sha256("${path.module}/lambda/index.zip")}"
   environment {
    variables = {
     SFN_ARN = aws_sfn_state_machine.workflow-engine.arn
